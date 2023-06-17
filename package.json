@@ -1,0 +1,16 @@
+{
+  "name": "controller_server",
+  "version": "1.0.0",
+  "description": "this project is the server of CRM project for education system",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "nodemon index.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "nodemon": "^2.0.22"
+  }
+}
