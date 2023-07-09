@@ -100,3 +100,22 @@ exports.addStudents = async (req, res) => {
     console.log(e);
   }
 };
+
+exports.removeStudent = async (req, res) => {
+  const { groupId } = req.params;
+
+  try {
+    await Group.updateOne(
+      { _id: groupId },
+      {
+        $pull: {
+          students: req.body.student,
+        },
+      }
+    );
+
+    res.json({ success: true, message: "student is deleted from group" });
+  } catch (e) {
+    console.log(e);
+  }
+};

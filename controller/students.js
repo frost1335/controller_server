@@ -99,19 +99,3 @@ exports.getSpecStudents = async (req, res) => {
     console.log(e);
   }
 };
-
-// .aggregate([
-//   {
-//     $project: {
-//       name: 1,
-//       phone: 1,
-//       status: {
-//         $cond: {
-//           if: { $gte: ["$balance", 0] },
-//           then: "active",
-//           else: "inactive",
-//         },
-//       },
-//     },
-//   },
-// ]);
