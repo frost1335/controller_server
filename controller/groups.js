@@ -65,3 +65,19 @@ exports.removeOne = async (req, res, next) => {
     console.log(e.message);
   }
 };
+
+exports.detachField = async (req, res) => {
+  const { groupId } = req.params;
+  console.log(req.body);
+
+  try {
+    const group = await Group.updateOne(
+      { _id: groupId },
+      {
+        $unset: req.body,
+      }
+    );
+
+    console.log(group);
+  } catch (e) {}
+};
