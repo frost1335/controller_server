@@ -1,3 +1,4 @@
+const Group = require("../schemas/Group");
 const Student = require("../schemas/Student");
 
 exports.getAll = async (req, res, next) => {
@@ -81,3 +82,36 @@ exports.makePayment = async (req, res) => {
     console.log(e);
   }
 };
+
+exports.getSpecStudents = async (req, res) => {
+  const { groupId } = req.query;
+  try {
+    const group = await Group.findOne(
+      { _id: groupId },
+      { students: 1, _id: 0 }
+    );
+    const students = (
+      await Student.find({}, { name: 1, phone: 1, balance: 1 })
+    ).filter((s) => !group?.students.includes(s._id.toString()));
+
+    res.json([...students]);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+// .aggregate([
+//   {
+//     $project: {
+//       name: 1,
+//       phone: 1,
+//       status: {
+//         $cond: {
+//           if: { $gte: ["$balance", 0] },
+//           then: "active",
+//           else: "inactive",
+//         },
+//       },
+//     },
+//   },
+// ]);

@@ -2,7 +2,6 @@ const Teacher = require("../schemas/Teacher");
 
 exports.getAll = async (req, res, next) => {
   try {
-
     const teachers = await Teacher.find();
     res.json(teachers);
   } catch (e) {

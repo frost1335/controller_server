@@ -24,12 +24,11 @@ exports.createOne = async (req, res, next) => {
 exports.getOne = async (req, res, next) => {
   const { groupId } = req.params;
   try {
-    const group = await Group.findOne({ _id: groupId }).populate(
-      "course teacher",
-      { name: 1, price: 1, phone: 1, attendance: -1 }
-    );
+    const group = await Group.findOne({ _id: groupId })
+      .populate("course teacher", { name: 1, price: 1, phone: 1 })
+      .populate("students", { paymentHistory: 0 });
 
-    res.json(group);
+    res.json({ ...group._doc });
   } catch (e) {
     console.log(e.message);
   }
@@ -68,7 +67,6 @@ exports.removeOne = async (req, res, next) => {
 
 exports.detachField = async (req, res) => {
   const { groupId } = req.params;
-  console.log(req.body);
 
   try {
     const group = await Group.updateOne(
@@ -78,6 +76,27 @@ exports.detachField = async (req, res) => {
       }
     );
 
-    console.log(group);
+    res.json({ success: true, message: "group is edited" });
   } catch (e) {}
+};
+
+exports.addStudents = async (req, res) => {
+  const { groupId } = req.params;
+  console.log(groupId);
+  try {
+    const data = await Group.updateOne(
+      { _id: groupId },
+      {
+        $push: {
+          students: {
+            $each: [...req.body],
+          },
+        },
+      }
+    );
+
+    console.log(data);
+  } catch (e) {
+    console.log(e);
+  }
 };

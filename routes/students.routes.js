@@ -6,6 +6,7 @@ const {
   editOne,
   getOne,
   makePayment,
+  getSpecStudents,
 } = require("../controller/students");
 const router = Router();
 
@@ -16,5 +17,6 @@ router
   .patch(editOne)
   .get(getOne)
   .post(makePayment);
+router.route("/specs").get(getSpecStudents);
 
 module.exports = router;
