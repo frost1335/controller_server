@@ -82,7 +82,7 @@ exports.detachField = async (req, res) => {
 
 exports.addStudents = async (req, res) => {
   const { groupId } = req.params;
-  console.log(groupId);
+
   try {
     const data = await Group.updateOne(
       { _id: groupId },
@@ -95,7 +95,7 @@ exports.addStudents = async (req, res) => {
       }
     );
 
-    console.log(data);
+    res.json({ success: true, message: "students are added" });
   } catch (e) {
     console.log(e);
   }
@@ -115,6 +115,15 @@ exports.removeStudent = async (req, res) => {
     );
 
     res.json({ success: true, message: "student is deleted from group" });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+exports.getMinGroups = async (req, res) => {
+  try {
+    const data = await Group.find({}, { name: 1, students: 1, days: 1 });
+    console.log(data);
   } catch (e) {
     console.log(e);
   }

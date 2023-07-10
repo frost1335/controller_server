@@ -5,6 +5,23 @@ exports.getAll = async (req, res, next) => {
   try {
     const students = await Student.find();
 
+    const students1 = await Group.aggregate([
+      {
+        $lookup: {
+          from: "Student",
+          foreignField: "_id",
+          localField: "students",
+          as: "group",
+        },
+      },
+    ]);
+
+    // 
+    // 
+    // 
+
+    console.log(students1);
+
     res.json(students);
   } catch (e) {
     console.log(e.message);
