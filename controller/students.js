@@ -1,5 +1,7 @@
+const { default: mongoose } = require("mongoose");
 const Group = require("../schemas/Group");
 const Student = require("../schemas/Student");
+const ObjectId = mongoose.Types.ObjectId;
 
 exports.getAll = async (req, res, next) => {
   try {
@@ -80,9 +82,89 @@ exports.createOne = async (req, res, next) => {
 exports.getOne = async (req, res, next) => {
   const { studentId } = req.params;
   try {
-    const student = await Student.findOne({ _id: studentId });
+    const student = await Student.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(studentId),
+        },
+      },
+      {
+        $lookup: {
+          from: "groups",
+          let: { student_id: "$_id" },
+          as: "group",
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$$student_id", "$students"],
+                },
+              },
+            },
+            {
+              $project: {
+                name: 1,
+                teacher: 1,
+                course: 1,
+                days: 1,
+                time: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "teachers",
+          localField: "group.teacher",
+          foreignField: "_id",
+          as: "teacher",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+                phone: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "group.course",
+          foreignField: "_id",
+          as: "course",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+                price: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          phone: 1,
+          balance: 1,
+          paymentHistory: 1,
+          group: {
+            $arrayElemAt: [{ $getField: "group" }, 0],
+          },
+          teacher: {
+            $arrayElemAt: ["$teacher", 0],
+          },
+          course: {
+            $arrayElemAt: ["$course", 0],
+          },
+        },
+      },
+    ]);
 
-    res.json(student);
+    res.json({ ...student[0] });
   } catch (e) {
     console.log(e.message);
   }
@@ -142,15 +224,43 @@ exports.makePayment = async (req, res) => {
 exports.getSpecStudents = async (req, res) => {
   const { groupId } = req.query;
   try {
-    const group = await Group.findOne(
-      { _id: groupId },
-      { students: 1, _id: 0 }
-    );
-    const students = (
-      await Student.find({}, { name: 1, phone: 1, balance: 1 })
-    ).filter((s) => !group?.students.includes(s._id.toString()));
+    const students = await Student.aggregate([
+      {
+        $lookup: {
+          from: "groups",
+          as: "group",
+          let: { student_id: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$$student_id", "$students"],
+                },
+              },
+            },
+            {
+              $project: {
+                name: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          phone: 1,
+          balance: 1,
+          group: { $arrayElemAt: ["$group", 0] },
+        },
+      },
+    ]);
 
-    res.json([...students]);
+    const filteredStudents = students.filter((student) =>
+      student.group ? student.group._id.toString() !== groupId.toString() : true
+    );
+
+    res.json([...filteredStudents]);
   } catch (e) {
     console.log(e);
   }
