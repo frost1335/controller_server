@@ -17,6 +17,7 @@ const groupSchema = new mongoose.Schema({
     {
       type: mongoose.SchemaTypes.ObjectId,
       ref: "Student",
+      unique: true,
     },
   ],
   days: Array,

@@ -17,7 +17,10 @@ const studentSchema = new mongoose.Schema({
     type: mongoose.SchemaTypes.ObjectId,
     ref: "Teacher",
   },
-  balance: Number,
+  balance: {
+    type: Number,
+    default: 0,
+  },
   paymentHistory: [paymentSchema],
 });
 

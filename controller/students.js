@@ -3,24 +3,63 @@ const Student = require("../schemas/Student");
 
 exports.getAll = async (req, res, next) => {
   try {
-    const students = await Student.find();
-
-    const students1 = await Group.aggregate([
+    const students = await Student.aggregate([
       {
         $lookup: {
-          from: "Student",
-          foreignField: "_id",
-          localField: "students",
+          from: "groups",
+          let: { student_id: "$_id" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$$student_id", "$students"],
+                },
+              },
+            },
+            {
+              $lookup: {
+                from: "teachers",
+                localField: "teacher",
+                foreignField: "_id",
+                pipeline: [
+                  {
+                    $project: {
+                      name: 1,
+                      _id: 0,
+                    },
+                  },
+                ],
+                as: "teacher",
+              },
+            },
+            {
+              $project: {
+                _id: 0,
+                name: 1,
+                teacher: 1,
+              },
+            },
+          ],
           as: "group",
         },
       },
+      {
+        $project: {
+          name: 1,
+          phone: 1,
+          group: { $arrayElemAt: ["$group.name", 0] },
+          teacher: {
+            $arrayElemAt: [
+              {
+                $arrayElemAt: ["$group.teacher.name", 0],
+              },
+              0,
+            ],
+          },
+          balance: 1,
+        },
+      },
     ]);
-
-    // 
-    // 
-    // 
-
-    console.log(students1);
 
     res.json(students);
   } catch (e) {
