@@ -1,15 +1,40 @@
 const Teacher = require("../schemas/Teacher");
 
-exports.getAll = async (req, res, next) => {
+exports.getAll = async (req, res) => {
   try {
-    const teachers = await Teacher.find();
+    const teachers = await Teacher.aggregate([
+      {
+        $lookup: {
+          from: "groups",
+          localField: "_id",
+          foreignField: "teacher",
+          as: "groups",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+                _id: 0,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          phone: 1,
+          groupsCount: { $size: "$groups.name" },
+        },
+      },
+    ]);
+
     res.json(teachers);
   } catch (e) {
     console.log(e.message);
   }
 };
 
-exports.createOne = async (req, res, next) => {
+exports.createOne = async (req, res) => {
   try {
     const teacher = await Teacher.create({ ...req.body });
 
@@ -19,7 +44,7 @@ exports.createOne = async (req, res, next) => {
   }
 };
 
-exports.getOne = async (req, res, next) => {
+exports.getOne = async (req, res) => {
   const { teacherId } = req.params;
   try {
     const teacher = await Teacher.findOne({ _id: teacherId });
@@ -30,7 +55,7 @@ exports.getOne = async (req, res, next) => {
   }
 };
 
-exports.editOne = async (req, res, next) => {
+exports.editOne = async (req, res) => {
   const { teacherId } = req.params;
   const teacher = req.body;
   try {
@@ -46,7 +71,7 @@ exports.editOne = async (req, res, next) => {
   }
 };
 
-exports.removeOne = async (req, res, next) => {
+exports.removeOne = async (req, res) => {
   const { teacherId } = req.params;
   try {
     await Teacher.deleteOne({ _id: teacherId });
