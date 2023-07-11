@@ -220,46 +220,6 @@ exports.detachField = async (req, res) => {
   } catch (e) {}
 };
 
-exports.addStudents = async (req, res) => {
-  const { groupId } = req.params;
-
-  try {
-    await Group.updateOne(
-      { _id: groupId },
-      {
-        $push: {
-          students: {
-            $each: [...req.body],
-          },
-        },
-      }
-    );
-
-    res.json({ success: true, message: "students are added" });
-  } catch (e) {
-    console.log(e);
-  }
-};
-
-exports.removeStudent = async (req, res) => {
-  const { groupId } = req.params;
-
-  try {
-    await Group.updateOne(
-      { _id: groupId },
-      {
-        $pull: {
-          students: req.body.student,
-        },
-      }
-    );
-
-    res.json({ success: true, message: "student is deleted from group" });
-  } catch (e) {
-    console.log(e);
-  }
-};
-
 exports.getMinGroups = async (req, res) => {
   const { groupId } = req.query;
 
@@ -307,6 +267,77 @@ exports.getMinGroups = async (req, res) => {
     ]);
 
     res.json(groups);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+exports.addStudents = async (req, res) => {
+  const { groupId } = req.params;
+
+  try {
+    await Group.updateOne(
+      { _id: groupId },
+      {
+        $push: {
+          students: {
+            $each: [...req.body],
+          },
+        },
+      }
+    );
+
+    res.json({ success: true, message: "students are added" });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+exports.removeStudent = async (req, res) => {
+  const { groupId } = req.params;
+
+  try {
+    await Group.updateOne(
+      { _id: groupId },
+      {
+        $pull: {
+          students: req.body.student,
+        },
+      }
+    );
+
+    res.json({ success: true, message: "student is deleted from group" });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+exports.replaceStudent = async (req, res) => {
+  const { groupId } = req.params;
+  const { studentId, newGroupId } = req.body;
+
+  try {
+    await Group.updateOne(
+      { _id: new ObjectId(groupId) },
+      {
+        $pull: {
+          students: new ObjectId(studentId),
+        },
+      }
+    );
+
+    await Group.updateOne(
+      {
+        _id: newGroupId,
+      },
+      {
+        $push: {
+          students: new ObjectId(studentId),
+        },
+      }
+    );
+
+    res.json({ success: true, message: "Student is replaced" });
   } catch (e) {
     console.log(e);
   }
