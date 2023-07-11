@@ -8,10 +8,12 @@ const {
   detachField,
   addStudents,
   removeStudent,
+  getMinGroups,
 } = require("../controller/groups");
 const router = Router();
 
 router.route("/").get(getAll).post(createOne);
+router.route("/min").get(getMinGroups);
 router.route("/select/:groupId").delete(removeOne).patch(editOne).get(getOne);
 router.route("/:groupId/detach").put(detachField);
 router.route("/:groupId/add/students").put(addStudents);

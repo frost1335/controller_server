@@ -38,12 +38,39 @@ exports.getAll = async (req, res, next) => {
         },
       },
       {
+        $lookup: {
+          from: "students",
+          let: { students_list: "$students" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$_id", "$$students_list"],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+              },
+            },
+          ],
+          as: "students",
+        },
+      },
+      {
         $project: {
           name: 1,
           time: 1,
           days: 1,
+          studentsCount: { $size: "$students" },
           course: { $arrayElemAt: ["$course.name", 0] },
           teacher: { $arrayElemAt: ["$teacher.name", 0] },
+        },
+      },
+      {
+        $project: {
+          students: 0,
         },
       },
     ]);
@@ -67,14 +94,76 @@ exports.createOne = async (req, res, next) => {
 exports.getOne = async (req, res, next) => {
   const { groupId } = req.params;
   try {
-    const group1 = await Group.findOne({ _id: groupId })
-      .populate("course teacher", { name: 1, price: 1, phone: 1 })
-      .populate("students", { paymentHistory: 0 });
-
     const group = await Group.aggregate([
       {
         $match: {
           _id: new ObjectId(groupId),
+        },
+      },
+      {
+        $lookup: {
+          from: "teachers",
+          localField: "teacher",
+          foreignField: "_id",
+          as: "teacher",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+                phone: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "course",
+          foreignField: "_id",
+          as: "course",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+                price: 1,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "students",
+          let: { students_list: "$students" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$_id", "$$students_list"],
+                },
+              },
+            },
+            {
+              $project: {
+                name: 1,
+                phone: 1,
+                balance: 1,
+              },
+            },
+          ],
+          as: "students",
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          info: 1,
+          students: 1,
+          days: 1,
+          time: 1,
+          teacher: { $arrayElemAt: ["$teacher", 0] },
+          course: { $arrayElemAt: ["$course", 0] },
         },
       },
     ]);
@@ -135,7 +224,7 @@ exports.addStudents = async (req, res) => {
   const { groupId } = req.params;
 
   try {
-    const data = await Group.updateOne(
+    await Group.updateOne(
       { _id: groupId },
       {
         $push: {
@@ -172,9 +261,52 @@ exports.removeStudent = async (req, res) => {
 };
 
 exports.getMinGroups = async (req, res) => {
+  const { groupId } = req.query;
+
   try {
-    const data = await Group.find({}, { name: 1, students: 1, days: 1 });
-    console.log(data);
+    const groups = await Group.aggregate([
+      {
+        $match: {
+          _id: { $not: { $eq: new ObjectId(groupId) } },
+        },
+      },
+      {
+        $lookup: {
+          from: "students",
+          let: { students_list: "$students" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$_id", "$$students_list"],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+              },
+            },
+          ],
+          as: "students",
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          time: 1,
+          days: 1,
+          studentsCount: { $size: "$students" },
+        },
+      },
+      {
+        $project: {
+          students: 0,
+        },
+      },
+    ]);
+
+    res.json(groups);
   } catch (e) {
     console.log(e);
   }
