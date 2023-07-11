@@ -1,10 +1,53 @@
 const mongoose = require("mongoose");
-const ObjectId = mongoose.Types.ObjectId;
 const Group = require("../schemas/Group");
+const ObjectId = mongoose.Types.ObjectId;
 
 exports.getAll = async (req, res, next) => {
   try {
-    const groups = await Group.find();
+    const groups = await Group.aggregate([
+      {
+        $lookup: {
+          from: "teachers",
+          localField: "teacher",
+          foreignField: "_id",
+          as: "teacher",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+                _id: 0,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "course",
+          foreignField: "_id",
+          as: "course",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+                _id: 0,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          time: 1,
+          days: 1,
+          course: { $arrayElemAt: ["$course.name", 0] },
+          teacher: { $arrayElemAt: ["$teacher.name", 0] },
+        },
+      },
+    ]);
+
     res.json(groups);
   } catch (e) {
     console.log(e.message);
@@ -24,11 +67,19 @@ exports.createOne = async (req, res, next) => {
 exports.getOne = async (req, res, next) => {
   const { groupId } = req.params;
   try {
-    const group = await Group.findOne({ _id: groupId })
+    const group1 = await Group.findOne({ _id: groupId })
       .populate("course teacher", { name: 1, price: 1, phone: 1 })
       .populate("students", { paymentHistory: 0 });
 
-    res.json({ ...group._doc });
+    const group = await Group.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(groupId),
+        },
+      },
+    ]);
+
+    res.json({ ...group[0] });
   } catch (e) {
     console.log(e.message);
   }
