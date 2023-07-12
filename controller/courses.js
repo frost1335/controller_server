@@ -1,4 +1,6 @@
+const { default: mongoose } = require("mongoose");
 const Course = require("../schemas/Course");
+const ObjectId = mongoose.Types.ObjectId;
 
 exports.getAll = async (req, res) => {
   try {
@@ -22,9 +24,30 @@ exports.createOne = async (req, res) => {
 exports.getOne = async (req, res) => {
   const { courseId } = req.params;
   try {
-    const course = await Course.findOne({ _id: courseId });
+    const course = await Course.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(courseId),
+        },
+      },
+      {
+        $lookup: {
+          from: "groups",
+          localField: "_id",
+          foreignField: "course",
+          as: "groups",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+              },
+            },
+          ],
+        },
+      },
+    ]);
 
-    res.json(course);
+    res.json({ ...course[0] });
   } catch (e) {
     console.log(e.message);
   }
