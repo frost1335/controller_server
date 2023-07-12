@@ -1,6 +1,6 @@
 const Lid = require("../schemas/Lid");
 
-exports.getAll = async (req, res, next) => {
+exports.getAll = async (req, res) => {
   try {
     const lids = await Lid.find();
 
@@ -10,7 +10,7 @@ exports.getAll = async (req, res, next) => {
   }
 };
 
-exports.createOne = async (req, res, next) => {
+exports.createOne = async (req, res) => {
   try {
     await Lid.create({ ...req.body });
 
@@ -20,7 +20,7 @@ exports.createOne = async (req, res, next) => {
   }
 };
 
-exports.getOne = async (req, res, next) => {
+exports.getOne = async (req, res) => {
   const { lidId } = req.params;
   try {
     const lid = await Lid.findOne({ _id: lidId });
@@ -31,7 +31,7 @@ exports.getOne = async (req, res, next) => {
   }
 };
 
-exports.editOne = async (req, res, next) => {
+exports.editOne = async (req, res) => {
   const { lidId } = req.params;
   const lid = req.body;
 
@@ -41,14 +41,14 @@ exports.editOne = async (req, res, next) => {
       { ...lid, _id: lidId },
       { new: true }
     );
- 
+
     res.json({ success: true, message: "Lid is edited" });
   } catch (e) {
     console.log(e.message);
   }
 };
 
-exports.removeOne = async (req, res, next) => {
+exports.removeOne = async (req, res) => {
   const { lidId } = req.params;
 
   try {

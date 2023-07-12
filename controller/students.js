@@ -1,9 +1,8 @@
 const { default: mongoose } = require("mongoose");
-const Group = require("../schemas/Group");
 const Student = require("../schemas/Student");
 const ObjectId = mongoose.Types.ObjectId;
 
-exports.getAll = async (req, res, next) => {
+exports.getAll = async (req, res) => {
   try {
     const students = await Student.aggregate([
       {
@@ -69,7 +68,7 @@ exports.getAll = async (req, res, next) => {
   }
 };
 
-exports.createOne = async (req, res, next) => {
+exports.createOne = async (req, res) => {
   try {
     const student = await Student.create({ ...req.body });
 
@@ -79,7 +78,7 @@ exports.createOne = async (req, res, next) => {
   }
 };
 
-exports.getOne = async (req, res, next) => {
+exports.getOne = async (req, res) => {
   const { studentId } = req.params;
   try {
     const student = await Student.aggregate([
@@ -170,7 +169,7 @@ exports.getOne = async (req, res, next) => {
   }
 };
 
-exports.editOne = async (req, res, next) => {
+exports.editOne = async (req, res) => {
   const { studentId } = req.params;
   const student = req.body;
 
@@ -187,7 +186,7 @@ exports.editOne = async (req, res, next) => {
   }
 };
 
-exports.removeOne = async (req, res, next) => {
+exports.removeOne = async (req, res) => {
   const { studentId } = req.params;
 
   try {

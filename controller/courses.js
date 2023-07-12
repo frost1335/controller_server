@@ -1,6 +1,6 @@
 const Course = require("../schemas/Course");
 
-exports.getAll = async (req, res, next) => {
+exports.getAll = async (req, res) => {
   try {
     const courses = await Course.find();
     res.json(courses);
@@ -9,7 +9,7 @@ exports.getAll = async (req, res, next) => {
   }
 };
 
-exports.createOne = async (req, res, next) => {
+exports.createOne = async (req, res) => {
   try {
     const course = await Course.create({ ...req.body });
 
@@ -19,7 +19,7 @@ exports.createOne = async (req, res, next) => {
   }
 };
 
-exports.getOne = async (req, res, next) => {
+exports.getOne = async (req, res) => {
   const { courseId } = req.params;
   try {
     const course = await Course.findOne({ _id: courseId });
@@ -30,7 +30,7 @@ exports.getOne = async (req, res, next) => {
   }
 };
 
-exports.editOne = async (req, res, next) => {
+exports.editOne = async (req, res) => {
   const { courseId } = req.params;
   const course = req.body;
   try {
@@ -46,7 +46,7 @@ exports.editOne = async (req, res, next) => {
   }
 };
 
-exports.removeOne = async (req, res, next) => {
+exports.removeOne = async (req, res) => {
   const { courseId } = req.params;
   try {
     await Course.deleteOne({ _id: courseId });

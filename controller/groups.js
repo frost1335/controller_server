@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 const Group = require("../schemas/Group");
 const ObjectId = mongoose.Types.ObjectId;
 
-exports.getAll = async (req, res, next) => {
+exports.getAll = async (req, res) => {
   try {
     const groups = await Group.aggregate([
       {
@@ -81,7 +81,7 @@ exports.getAll = async (req, res, next) => {
   }
 };
 
-exports.createOne = async (req, res, next) => {
+exports.createOne = async (req, res) => {
   try {
     const group = await Group.create({ ...req.body });
 
@@ -91,7 +91,7 @@ exports.createOne = async (req, res, next) => {
   }
 };
 
-exports.getOne = async (req, res, next) => {
+exports.getOne = async (req, res) => {
   const { groupId } = req.params;
   try {
     const group = await Group.aggregate([
@@ -174,7 +174,7 @@ exports.getOne = async (req, res, next) => {
   }
 };
 
-exports.editOne = async (req, res, next) => {
+exports.editOne = async (req, res) => {
   const { groupId } = req.params;
   const group = req.body;
   try {
@@ -193,7 +193,7 @@ exports.editOne = async (req, res, next) => {
   }
 };
 
-exports.removeOne = async (req, res, next) => {
+exports.removeOne = async (req, res) => {
   const { groupId } = req.params;
 
   try {
@@ -209,7 +209,7 @@ exports.detachField = async (req, res) => {
   const { groupId } = req.params;
 
   try {
-    const group = await Group.updateOne(
+    await Group.updateOne(
       { _id: groupId },
       {
         $unset: req.body,

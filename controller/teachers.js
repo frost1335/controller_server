@@ -1,4 +1,6 @@
+const mongoose = require("mongoose");
 const Teacher = require("../schemas/Teacher");
+const ObjectId = mongoose.Types.ObjectId;
 
 exports.getAll = async (req, res) => {
   try {
@@ -23,7 +25,7 @@ exports.getAll = async (req, res) => {
         $project: {
           name: 1,
           phone: 1,
-          groupsCount: { $size: "$groups.name" },
+          groupsCount: { $size: "$groups" },
         },
       },
     ]);
@@ -47,9 +49,97 @@ exports.createOne = async (req, res) => {
 exports.getOne = async (req, res) => {
   const { teacherId } = req.params;
   try {
-    const teacher = await Teacher.findOne({ _id: teacherId });
+    const teacher = await Teacher.aggregate([
+      {
+        $match: {
+          _id: new ObjectId(teacherId),
+        },
+      },
+      {
+        $lookup: {
+          from: "groups",
+          localField: "_id",
+          foreignField: "teacher",
+          as: "groups",
+          pipeline: [
+            {
+              $lookup: {
+                from: "courses",
+                localField: "course",
+                foreignField: "_id",
+                as: "course",
+                pipeline: [
+                  {
+                    $project: {
+                      name: 1,
+                    },
+                  },
+                ],
+              },
+            },
+            {
+              $lookup: {
+                from: "students",
+                let: { students_list: "$students" },
+                pipeline: [
+                  {
+                    $match: {
+                      $expr: {
+                        $in: ["$_id", "$$students_list"],
+                      },
+                    },
+                  },
+                  {
+                    $project: {
+                      name: 1,
+                      phone: 1,
+                      balance: 1,
+                    },
+                  },
+                ],
+                as: "students",
+              },
+            },
+            {
+              $project: {
+                name: 1,
+                students: 1,
+                days: 1,
+                time: 1,
+                course: { $arrayElemAt: ["$course", 0] },
+              },
+            },
+          ],
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          phone: 1,
+          groups: 1,
+          groupsCount: {
+            $size: "$groups",
+          },
+          studentsCount: {
+            $reduce: {
+              input: {
+                $map: {
+                  input: "$groups",
+                  as: "group",
+                  in: {
+                    $size: "$$group.students",
+                  },
+                },
+              },
+              initialValue: 0,
+              in: { $add: ["$$value", "$$this"] },
+            },
+          },
+        },
+      },
+    ]);
 
-    res.json(teacher);
+    res.json({ ...teacher[0] });
   } catch (e) {
     console.log(e.message);
   }
