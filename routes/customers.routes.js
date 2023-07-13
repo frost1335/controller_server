@@ -5,10 +5,14 @@ const {
   editOne,
   removeOne,
   getOne,
-} = require("../controller/lids");
+} = require("../controller/customers");
 const router = Router();
 
 router.route("/").get(getAll).post(createOne);
-router.route("/select/:lidId").patch(editOne).delete(removeOne).get(getOne);
+router
+  .route("/select/:customerId")
+  .patch(editOne)
+  .delete(removeOne)
+  .get(getOne);
 
 module.exports = router;
