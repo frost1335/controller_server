@@ -3,7 +3,7 @@ module.exports = (app) => {
     const studentsRoutes = require("../routes/students.routes");
     const teachersRoutes = require("../routes/teachers.routes");
     const groupsRoutes = require("../routes/groups.routes");
-    const attendanceRoutes = require("../routes/groups.routes");
+    const attendanceRoutes = require("../routes/attendance.routes");
     const coursesRoutes = require("../routes/courses.routes");
   
     app.use("/api/customers", customersRoutes);
