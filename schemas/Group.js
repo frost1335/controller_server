@@ -1,6 +1,21 @@
 const mongoose = require("mongoose");
 
-const attendanceSchema = new mongoose.Schema({});
+const attendanceSchema = new mongoose.Schema([
+  {
+    month: String,
+    monthIndex: Number,
+    current: Boolean,
+    students: [
+      {
+        studentId: {
+          type: mongoose.Types.ObjectId,
+          ref: "Student",
+        },
+        days: Array,
+      },
+    ],
+  },
+]);
 
 const groupSchema = new mongoose.Schema({
   name: String,
