@@ -11,7 +11,7 @@ const attendanceSchema = new mongoose.Schema([
           type: mongoose.Types.ObjectId,
           ref: "Student",
         },
-        days: Array,
+        lessons: Array,
       },
     ],
   },
@@ -37,7 +37,22 @@ const groupSchema = new mongoose.Schema({
   ],
   days: Array,
   time: Array,
-  attendance: attendanceSchema,
+  attendance: [
+    {
+      month: String,
+      monthIndex: Number,
+      current: Boolean,
+      studentList: [
+        {
+          studentId: {
+            type: mongoose.Types.ObjectId,
+            ref: "Student",
+          },
+          lessons: Array,
+        },
+      ],
+    },
+  ],
 });
 
 module.exports = mongoose.model("Group", groupSchema);
