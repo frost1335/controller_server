@@ -321,7 +321,13 @@ exports.removeStudent = async (req, res) => {
       {
         $pull: {
           students: req.body.student,
+          "attendance.$[month].studentList": {
+            studentId: req.body.student,  
+          },
         },
+      },
+      {
+        arrayFilters: [{ "month.current": true }],
       }
     );
 
