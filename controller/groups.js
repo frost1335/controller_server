@@ -1,5 +1,6 @@
 const mongoose = require("mongoose");
 const Group = require("../schemas/Group");
+const getLessons = require("../utils/getLessons");
 const ObjectId = mongoose.Types.ObjectId;
 
 exports.getAll = async (req, res) => {
@@ -151,6 +152,11 @@ exports.getOne = async (req, res) => {
                 balance: 1,
               },
             },
+            {
+              $sort: {
+                name: -1,
+              },
+            },
           ],
           as: "students",
         },
@@ -170,7 +176,7 @@ exports.getOne = async (req, res) => {
 
     res.json({ ...group[0] });
   } catch (e) {
-    console.log(e.message);
+    console.log(e);
   }
 };
 
@@ -276,6 +282,13 @@ exports.addStudents = async (req, res) => {
   const { groupId } = req.params;
 
   try {
+    const group = await Group.findOne(
+      { _id: groupId },
+      { attendance: 1, days: 1 }
+    );
+
+    const students = getLessons(group, [...req.body]);
+
     await Group.updateOne(
       { _id: groupId },
       {
@@ -283,7 +296,13 @@ exports.addStudents = async (req, res) => {
           students: {
             $each: [...req.body],
           },
+          "attendance.$[month].studentList": {
+            $each: [...students],
+          },
         },
+      },
+      {
+        arrayFilters: [{ "month.current": true }],
       }
     );
 

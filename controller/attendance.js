@@ -46,26 +46,31 @@ exports.getOne = async (req, res) => {
                 monthIndex: "$$table.monthIndex",
                 current: "$$table.current",
                 studentList: {
-                  $map: {
-                    input: "$$table.studentList",
-                    as: "student",
-                    in: {
-                      student: {
-                        $arrayElemAt: [
-                          {
-                            $filter: {
-                              input: "$studentList",
-                              as: "stud",
-                              cond: {
-                                $eq: ["$$stud._id", "$$student.studentId"],
+                  $sortArray: {
+                    input: {
+                      $map: {
+                        input: "$$table.studentList",
+                        as: "student",
+                        in: {
+                          student: {
+                            $arrayElemAt: [
+                              {
+                                $filter: {
+                                  input: "$studentList",
+                                  as: "stud",
+                                  cond: {
+                                    $eq: ["$$stud._id", "$$student.studentId"],
+                                  },
+                                },
                               },
-                            },
+                              0,
+                            ],
                           },
-                          0,
-                        ],
+                          lessons: "$$student.lessons",
+                        },
                       },
-                      lessons: "$$student.lessons",
                     },
+                    sortBy: { "student.name": -1 },
                   },
                 },
               },
