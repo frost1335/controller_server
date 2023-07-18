@@ -1,19 +1,20 @@
 const { Router } = require("express");
 const {
-  getAll,
-  editOne,
+  addLesson,
   getOne,
-  editDetail,
   initOne,
+  editStudentStatus,
+  removeLesson,
 } = require("../controller/attendance");
 const router = Router();
 
-router.route("/").get(getAll);
 router
   .route("/select/:groupId")
   .post(initOne)
-  .put(editOne)
+  .put(addLesson)
   .get(getOne)
-  .patch(editDetail);
+  .patch(editStudentStatus);
 
-module.exports = router
+router.route("/select/:groupId/add").patch(addLesson).put(removeLesson);
+
+module.exports = router;

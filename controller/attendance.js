@@ -1,12 +1,9 @@
 const { default: mongoose } = require("mongoose");
 const Group = require("../schemas/Group");
-const { monthList } = require("../utils/constants");
+const { monthList, weekdays2 } = require("../utils/constants");
 const getStudentList = require("../utils/getStudentList");
+const { CalendarDate } = require("calendar-date");
 const ObjectId = mongoose.Types.ObjectId;
-
-exports.getAll = (req, res) => {
-  res.send("all attendances");
-};
 
 exports.getOne = async (req, res) => {
   const { groupId } = req.params;
@@ -133,10 +130,106 @@ exports.initOne = async (req, res) => {
   }
 };
 
-exports.editOne = (req, res) => {
-  res.send("edit an attendance " + req.params.attendanceId);
+exports.editStudentStatus = async (req, res) => {
+  const { groupId } = req.params;
+  const { studentId, month, date, status } = req.body;
+
+  try {
+    await Group.updateOne(
+      {
+        _id: groupId,
+        "attendance.month": month,
+        "attendance.studentList.studentId": new ObjectId(studentId),
+      },
+      {
+        $set: {
+          "attendance.$[month].studentList.$[student].lessons.$[lesson].status":
+            status,
+        },
+      },
+      {
+        arrayFilters: [
+          { "month.month": month },
+          { "student.studentId": new ObjectId(studentId) },
+          { "lesson.date": date },
+        ],
+      }
+    );
+
+    res.json({ success: true, message: "Student status is changed" });
+  } catch (e) {
+    console.log(e);
+  }
 };
 
-exports.editDetail = (req, res) => {
-  res.send("edit an attendance " + req.params.attendanceId);
+exports.addLesson = async (req, res) => {
+  const { groupId } = req.params;
+  const { month, date } = req.body;
+  const weekDay = weekdays2[new CalendarDate(date).weekday - 1].short;
+
+  try {
+    await Group.updateOne(
+      {
+        _id: groupId,
+        "attendance.month": month,
+      },
+      {
+        $push: {
+          "attendance.$[month].studentList.$[].lessons": {
+            $each: [
+              {
+                date,
+                weekDay,
+                status: null,
+              },
+            ],
+            $sort: {
+              date: 1,
+            },
+          },
+        },
+      },
+      {
+        arrayFilters: [
+          {
+            "month.month": month,
+          },
+        ],
+      }
+    );
+
+    res.json({ success: true, message: "Lesson is added to the list" });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+exports.removeLesson = async (req, res) => {
+  const { groupId } = req.params;
+  const { month, date } = req.body;
+
+  try {
+    await Group.updateOne(
+      {
+        _id: groupId,
+        "attendance.month": month,
+      },
+      {
+        $pull: {
+          "attendance.$[month].studentList.$[].lessons": { date },
+        },
+      },
+      {
+        arrayFilters: [
+          {
+            "month.month": month,
+          },
+        ],
+      }
+    );
+
+    res.json({ success: true, message: "Lesson is deleted from the list" });
+  } catch (e) {
+    console.log(e);
+  }
 };

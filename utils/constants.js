@@ -43,3 +43,34 @@ exports.weekdays = [
     short: "Sha",
   },
 ];
+
+exports.weekdays2 = [
+  {
+    name: "Dushanba",
+    short: "Du",
+  },
+  {
+    name: "Seshanba",
+    short: "Se",
+  },
+  {
+    name: "Chorshanba",
+    short: "Cho",
+  },
+  {
+    name: "Payshanba",
+    short: "Pa",
+  },
+  {
+    name: "Juma",
+    short: "Ju",
+  },
+  {
+    name: "Shanba",
+    short: "Sha",
+  },
+  {
+    name: "Yakshanba",
+    short: "Yak",
+  },
+];
