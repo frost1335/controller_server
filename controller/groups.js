@@ -149,7 +149,6 @@ exports.getOne = async (req, res) => {
               $project: {
                 name: 1,
                 phone: 1,
-                balance: 1,
               },
             },
             {

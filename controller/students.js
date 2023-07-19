@@ -1,5 +1,7 @@
 const { default: mongoose } = require("mongoose");
 const Student = require("../schemas/Student");
+const { CalendarDate } = require("calendar-date");
+const { monthList } = require("../utils/constants");
 const ObjectId = mongoose.Types.ObjectId;
 
 exports.getAll = async (req, res) => {
@@ -57,7 +59,6 @@ exports.getAll = async (req, res) => {
               0,
             ],
           },
-          balance: 1,
         },
       },
     ]);
@@ -148,8 +149,14 @@ exports.getOne = async (req, res) => {
         $project: {
           name: 1,
           phone: 1,
-          balance: 1,
-          paymentHistory: 1,
+          paymentHistory: {
+            $sortArray: {
+              input: "$paymentHistory",
+              sortBy: {
+                date: -1,
+              },
+            },
+          },
           group: {
             $arrayElemAt: [{ $getField: "group" }, 0],
           },
@@ -200,21 +207,25 @@ exports.removeOne = async (req, res) => {
 
 exports.makePayment = async (req, res) => {
   const { studentId } = req.params;
+
   try {
     await Student.updateOne(
       { _id: studentId },
       {
         $push: {
           paymentHistory: {
-            date: req.body?.date || Date.now(),
+            date: req.body?.date
+              ? new Date(req.body?.date)
+              : new Date(Date.now()),
             quantity: +req.body?.quantity || 0,
+            method: req.body?.method,
             info: req.body?.info,
           },
         },
       }
     );
 
-    res.send("success");
+    res.send({ success: true, message: "Payment is added" });
   } catch (e) {
     console.log(e);
   }
@@ -253,7 +264,6 @@ exports.getSpecStudents = async (req, res) => {
         $project: {
           name: 1,
           phone: 1,
-          balance: 1,
         },
       },
     ]);

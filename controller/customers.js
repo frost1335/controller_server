@@ -36,7 +36,7 @@ exports.editOne = async (req, res) => {
   const customer = req.body;
 
   try {
-    const newCustomer = await Customer.findByIdAndUpdate(
+    await Customer.findByIdAndUpdate(
       customerId,
       { ...customer, _id: customerId },
       { new: true }

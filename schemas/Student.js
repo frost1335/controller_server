@@ -3,6 +3,7 @@ const mongoose = require("mongoose");
 const paymentSchema = new mongoose.Schema({
   date: Date,
   quantity: Number,
+  method: String,
   info: String,
 });
 
@@ -16,10 +17,6 @@ const studentSchema = new mongoose.Schema({
   teacher: {
     type: mongoose.SchemaTypes.ObjectId,
     ref: "Teacher",
-  },
-  balance: {
-    type: Number,
-    default: 0,
   },
   paymentHistory: [paymentSchema],
 });
