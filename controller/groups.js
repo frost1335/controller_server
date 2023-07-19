@@ -322,7 +322,7 @@ exports.removeStudent = async (req, res) => {
         $pull: {
           students: req.body.student,
           "attendance.$[month].studentList": {
-            studentId: req.body.student,  
+            studentId: req.body.student,
           },
         },
       },

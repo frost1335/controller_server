@@ -27,6 +27,11 @@ exports.getOne = async (req, res) => {
           as: "studentList",
           pipeline: [
             {
+              $match: {
+                name: { $exists: true },
+              },
+            },
+            {
               $project: {
                 name: 1,
                 phone: 1,
@@ -88,18 +93,17 @@ exports.getOne = async (req, res) => {
 
 exports.initOne = async (req, res) => {
   const { groupId } = req.params;
-  const { days } = req.body;
   const month = new Date().getMonth();
   const monthStr = monthList[month];
 
   try {
     const group = await Group.findOne(
       { _id: groupId },
-      { students: 1, attendance: 1, _id: 0 }
+      { students: 1, days: 1, attendance: 1, _id: 0 }
     );
 
     const isAttendance = group?.attendance.find(
-      (table) => table.month === monthStr
+      (table) => table.monthIndex === month
     );
 
     if (isAttendance) {
@@ -108,7 +112,7 @@ exports.initOne = async (req, res) => {
         message: "there is already a table for this month",
       });
     } else {
-      const studentList = getStudentList(group?.students, days);
+      const studentList = getStudentList(group?.students, group?.days);
 
       const attendance = {
         month: monthStr,
@@ -117,7 +121,7 @@ exports.initOne = async (req, res) => {
         studentList,
       };
 
-      const data = await Group.updateOne(
+      await Group.updateOne(
         { _id: groupId },
         {
           $push: {
@@ -234,6 +238,111 @@ exports.removeLesson = async (req, res) => {
     );
 
     res.json({ success: true, message: "Lesson is deleted from the list" });
+  } catch (e) {
+    console.log(e);
+  }
+};
+
+exports.refreshAttendance = async (req, res) => {
+  const { groupId } = req.params;
+  const month = new Date().getMonth();
+  const monthStr = monthList[month];
+
+  try {
+    const group = await Group.findOne(
+      { _id: groupId },
+      { students: 1, days: 1, attendance: 1, _id: 0 }
+    );
+
+    const isCurrent = group.attendance.find(
+      (table) => table.monthIndex === month
+    )?.current;
+
+    if (isCurrent) {
+      res.json({
+        success: false,
+        message: "This month is already current",
+        data: group,
+      });
+    } else {
+      const isMonth = group?.attendance?.find(
+        (table) => table.monthIndex === month
+      );
+
+      if (isMonth) {
+        await Group.updateOne(
+          { _id: groupId },
+          {
+            $set: {
+              "attendance.$[].current": false,
+            },
+          }
+        );
+
+        await Group.updateOne(
+          { _id: groupId },
+          {
+            $set: {
+              "attendance.$[current].current": true,
+            },
+          },
+          {
+            arrayFilters: [
+              {
+                "current.monthIndex": month,
+              },
+            ],
+          }
+        );
+
+        res.json({
+          success: true,
+          message: "Current attendance is changed",
+        });
+      } else {
+        const studentList = getStudentList(group?.students, group?.days);
+
+        const attendance = {
+          month: monthStr,
+          monthIndex: month,
+          current: true,
+          studentList,
+        };
+        await Group.updateOne(
+          { _id: groupId },
+          {
+            $push: {
+              attendance: {
+                ...attendance,
+              },
+            },
+          }
+        );
+
+        await Group.updateOne(
+          {
+            _id: groupId,
+          },
+          {
+            $set: {
+              "attendance.$[month].current": false,
+            },
+          },
+          {
+            arrayFilters: [
+              {
+                "month.monthIndex": { $ne: month },
+              },
+            ],
+          }
+        );
+
+        res.json({
+          success: true,
+          message: "Attendance is added to the group",
+        });
+      }
+    }
   } catch (e) {
     console.log(e);
   }

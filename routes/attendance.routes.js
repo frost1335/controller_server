@@ -5,6 +5,7 @@ const {
   initOne,
   editStudentStatus,
   removeLesson,
+  refreshAttendance,
 } = require("../controller/attendance");
 const router = Router();
 
@@ -16,5 +17,6 @@ router
   .patch(editStudentStatus);
 
 router.route("/select/:groupId/add").patch(addLesson).put(removeLesson);
+router.route("/select/:groupId/refresh").put(refreshAttendance);
 
 module.exports = router;
