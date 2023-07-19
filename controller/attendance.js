@@ -116,7 +116,7 @@ exports.initOne = async (req, res) => {
 
       const attendance = {
         month: monthStr,
-        year, 
+        year,
         monthIndex: month,
         current: true,
         studentList,
