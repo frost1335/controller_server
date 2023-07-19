@@ -116,6 +116,7 @@ exports.initOne = async (req, res) => {
 
       const attendance = {
         month: monthStr,
+        year, 
         monthIndex: month,
         current: true,
         studentList,
@@ -246,6 +247,7 @@ exports.removeLesson = async (req, res) => {
 exports.refreshAttendance = async (req, res) => {
   const { groupId } = req.params;
   const month = new Date().getMonth();
+  const year = new Date().getFullYear();
   const monthStr = monthList[month];
 
   try {
@@ -304,6 +306,7 @@ exports.refreshAttendance = async (req, res) => {
 
         const attendance = {
           month: monthStr,
+          year,
           monthIndex: month,
           current: true,
           studentList,
