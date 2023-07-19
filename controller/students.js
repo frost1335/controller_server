@@ -221,7 +221,6 @@ exports.makePayment = async (req, res) => {
 };
 
 exports.getSpecStudents = async (req, res) => {
-  const { groupId } = req.query;
   try {
     const students = await Student.aggregate([
       {
@@ -246,20 +245,20 @@ exports.getSpecStudents = async (req, res) => {
         },
       },
       {
+        $match: {
+          "group.name": { $exists: false },
+        },
+      },
+      {
         $project: {
           name: 1,
           phone: 1,
           balance: 1,
-          group: { $arrayElemAt: ["$group", 0] },
         },
       },
     ]);
 
-    const filteredStudents = students.filter((student) =>
-      student.group ? student.group._id.toString() !== groupId.toString() : true
-    );
-
-    res.json([...filteredStudents]);
+    res.json([...students]);
   } catch (e) {
     console.log(e);
   }
