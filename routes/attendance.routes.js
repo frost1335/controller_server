@@ -6,8 +6,11 @@ const {
   editStudentStatus,
   removeLesson,
   refreshAttendance,
+  getAllAttendance,
 } = require("../controller/attendance");
 const router = Router();
+
+router.get("/", getAllAttendance);
 
 router
   .route("/select/:groupId")

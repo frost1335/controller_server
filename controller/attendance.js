@@ -5,6 +5,84 @@ const getStudentList = require("../utils/getStudentList");
 const { CalendarDate } = require("calendar-date");
 const ObjectId = mongoose.Types.ObjectId;
 
+exports.getAllAttendance = async (req, res) => {
+  try {
+    const attendances = await Group.aggregate([
+      {
+        $lookup: {
+          from: "teachers",
+          localField: "teacher",
+          foreignField: "_id",
+          as: "teacher",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+                _id: 0,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "courses",
+          localField: "course",
+          foreignField: "_id",
+          as: "course",
+          pipeline: [
+            {
+              $project: {
+                name: 1,
+                _id: 0,
+              },
+            },
+          ],
+        },
+      },
+      {
+        $lookup: {
+          from: "students",
+          let: { students_list: "$students" },
+          pipeline: [
+            {
+              $match: {
+                $expr: {
+                  $in: ["$_id", "$$students_list"],
+                },
+              },
+            },
+            {
+              $project: {
+                _id: 1,
+              },
+            },
+          ],
+          as: "students",
+        },
+      },
+      {
+        $project: {
+          name: 1,
+          days: 1,
+          studentsCount: { $size: "$students" },
+          course: { $arrayElemAt: ["$course.name", 0] },
+          teacher: { $arrayElemAt: ["$teacher.name", 0] },
+        },
+      },
+      {
+        $project: {
+          students: 0,
+        },
+      },
+    ]);
+
+    res.json(attendances);
+  } catch (e) {
+    console.log(e);
+  }
+};
+
 exports.getOne = async (req, res) => {
   const { groupId } = req.params;
 
@@ -16,7 +94,7 @@ exports.getOne = async (req, res) => {
       {
         $project: {
           attendance: 1,
-          _id: 0,
+          name: 1,
         },
       },
       {
@@ -81,11 +159,12 @@ exports.getOne = async (req, res) => {
               },
             },
           },
+          name: 1,
         },
       },
     ]);
 
-    res.json(group?.[0]?.attendance);
+    res.json(group?.[0]);
   } catch (e) {
     console.log(e);
   }
