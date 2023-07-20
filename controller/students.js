@@ -283,9 +283,15 @@ exports.searchStudents = async (req, res) => {
         index: "student_search",
         text: {
           query: search,
-          path: ["name.first", "name.last", "phone"],
-          fuzzy: {},
+          path: ["name.first", "name.last", "info", "phone"],
         },
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        phone: 1,
+        info: 1,
       },
     },
   ]);
@@ -296,9 +302,15 @@ exports.searchStudents = async (req, res) => {
         index: "teacher_search",
         text: {
           query: search,
-          path: ["name.first", "name.last", "phone"],
-          fuzzy: {},
+          path: ["name.first", "name.last", "info", "phone"],
         },
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        phone: 1,
+        info: 1,
       },
     },
   ]);
