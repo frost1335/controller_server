@@ -7,10 +7,12 @@ const {
   getOne,
   makePayment,
   getSpecStudents,
+  searchStudents,
 } = require("../controller/students");
 const router = Router();
 
 router.route("/").get(getAll).post(createOne);
+router.route("/search").get(searchStudents);
 router
   .route("/select/:studentId")
   .delete(removeOne)

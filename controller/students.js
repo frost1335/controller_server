@@ -1,7 +1,8 @@
-const { default: mongoose } = require("mongoose");
+const { default: mongoose, STATES } = require("mongoose");
 const Student = require("../schemas/Student");
 const { CalendarDate } = require("calendar-date");
 const { monthList } = require("../utils/constants");
+const Teacher = require("../schemas/Teacher");
 const ObjectId = mongoose.Types.ObjectId;
 
 exports.getAll = async (req, res) => {
@@ -272,4 +273,36 @@ exports.getSpecStudents = async (req, res) => {
   } catch (e) {
     console.log(e);
   }
+};
+
+exports.searchStudents = async (req, res) => {
+  const { search } = req.query;
+
+  const students = await Student.aggregate([
+    {
+      $search: {
+        index: "student_search",
+        text: {
+          query: search,
+          path: ["name", "phone"],
+          fuzzy: {},
+        },
+      },
+    },
+  ]);
+
+  const teachers = await Teacher.aggregate([
+    {
+      $search: {
+        index: "teacher_search",
+        text: {
+          query: search,
+          path: ["name", "phone"],
+          fuzzy: {},
+        },
+      },
+    },
+  ]);
+
+  res.json({ students: [...students], teachers: [...teachers] });
 };
