@@ -1,7 +1,5 @@
-const { default: mongoose, STATES } = require("mongoose");
+const { default: mongoose } = require("mongoose");
 const Student = require("../schemas/Student");
-const { CalendarDate } = require("calendar-date");
-const { monthList } = require("../utils/constants");
 const Teacher = require("../schemas/Teacher");
 const ObjectId = mongoose.Types.ObjectId;
 
@@ -150,6 +148,7 @@ exports.getOne = async (req, res) => {
         $project: {
           name: 1,
           phone: 1,
+          info: 1,
           paymentHistory: {
             $sortArray: {
               input: "$paymentHistory",
@@ -284,7 +283,7 @@ exports.searchStudents = async (req, res) => {
         index: "student_search",
         text: {
           query: search,
-          path: ["name", "phone"],
+          path: ["name.first", "name.last", "phone"],
           fuzzy: {},
         },
       },
@@ -297,7 +296,7 @@ exports.searchStudents = async (req, res) => {
         index: "teacher_search",
         text: {
           query: search,
-          path: ["name", "phone"],
+          path: ["name.first", "name.last", "phone"],
           fuzzy: {},
         },
       },

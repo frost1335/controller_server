@@ -115,6 +115,7 @@ exports.getOne = async (req, res) => {
         $project: {
           name: 1,
           phone: 1,
+          info: 1,
           groups: 1,
           groupsCount: {
             $size: "$groups",
