@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const cors = require("cors");
 
+const errorHandler = require("./middleware/errorHandler");
+
 require("dotenv").config();
 require("./db/connect")(process.env.ATLAS_URI);
 app.use(cors());
@@ -14,6 +16,8 @@ app.get("/", (req, res) => {
 });
 
 require("./app/routes")(app);
+
+app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
 

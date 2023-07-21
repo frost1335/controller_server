@@ -1,61 +1,65 @@
+const { isValidObjectId } = require("mongoose");
+const asyncHandler = require("../middleware/asyncHandler");
 const Customer = require("../schemas/Customer");
+const ErrorResponse = require("../utils/errorResponse");
 
-exports.getAll = async (req, res) => {
-  try {
-    const customers = await Customer.find();
+exports.getAll = asyncHandler(async (req, res) => {
+  const customers = await Customer.find();
 
-    res.json(customers);
-  } catch (e) {
-    console.log(e.message);
-  }
-};
+  res.status(200).json({
+    success: true,
+    data: customers,
+  });
+});
 
-exports.createOne = async (req, res) => {
-  try {
-    await Customer.create({ ...req.body });
+exports.createOne = asyncHandler(async (req, res, next) => {
+  await Customer.create({ ...req.body });
 
-    res.json({ success: true, message: "Customer is created" });
-  } catch (e) {
-    console.log(e.message);
-  }
-};
+  res.status(200).json({ success: true, message: "Mijoz qo'shildi" });
+});
 
-exports.getOne = async (req, res) => {
+exports.getOne = asyncHandler(async (req, res, next) => {
   const { customerId } = req.params;
-  try {
-    const customer = await Customer.findOne({ _id: customerId });
 
-    res.json(customer);
-  } catch (e) {
-    console.log(e.message);
+  if (!isValidObjectId(customerId)) {
+    return next(new ErrorResponse(`Mijoz ID-${customerId} toplimadi`, 404));
   }
-};
 
-exports.editOne = async (req, res) => {
+  const customer = await Customer.findOne({ _id: customerId });
+
+  res.status(200).json({
+    success: true,
+    data: customer,
+  });
+});
+
+exports.editOne = asyncHandler(async (req, res, next) => {
   const { customerId } = req.params;
   const customer = req.body;
 
-  try {
-    await Customer.findByIdAndUpdate(
-      customerId,
-      { ...customer, _id: customerId },
-      { new: true }
-    );
-
-    res.json({ success: true, message: "Customer is edited" });
-  } catch (e) {
-    console.log(e.message);
+  if (!isValidObjectId(customerId)) {
+    return next(new ErrorResponse(`Mijoz ID-${customerId} toplimadi`, 404));
   }
-};
 
-exports.removeOne = async (req, res) => {
+  await Customer.updateOne(
+    { _id: customerId },
+    { ...customer, _id: customerId },
+    { new: true }
+  );
+
+  res
+    .status(200)
+    .json({ success: true, message: "Mijoz ma'lumotlari o'zgartirildi" });
+});
+
+exports.removeOne = asyncHandler(async (req, res, next) => {
   const { customerId } = req.params;
 
-  try {
-    await Customer.deleteOne({ _id: customerId });
-
-    res.json({ success: true, message: "Customer is deleted" });
-  } catch (e) {
-    console.log(e.message);
+  if (!isValidObjectId(customerId)) {
+    return next(new ErrorResponse(`Mijoz ID-${customerId} toplimadi`, 404));
   }
-};
+
+  await Customer.deleteOne({ _id: customerId });
+
+  res.status(200).json({ success: true, message: "Mijoz o'chirildi" });
+});
