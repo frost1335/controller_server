@@ -49,7 +49,7 @@ exports.createOne = asyncHandler(async (req, res) => {
 exports.getOne = asyncHandler(async (req, res, next) => {
   const { teacherId } = req.params;
 
-  if (!isValidObjectId(teacherId)) {
+  if (!mongoose.isValidObjectId(teacherId)) {
     return next(new ErrorResponse(`O'qituvchi ID-${teacherId} toplimadi`, 404));
   }
 
@@ -153,7 +153,7 @@ exports.editOne = asyncHandler(async (req, res, next) => {
   const { teacherId } = req.params;
   const teacher = req.body;
 
-  if (!isValidObjectId(teacherId)) {
+  if (!mongoose.isValidObjectId(teacherId)) {
     return next(new ErrorResponse(`O'qituvchi ID-${teacherId} toplimadi`, 404));
   }
 
@@ -172,7 +172,7 @@ exports.editOne = asyncHandler(async (req, res, next) => {
 exports.removeOne = asyncHandler(async (req, res, next) => {
   const { teacherId } = req.params;
 
-  if (!isValidObjectId(teacherId)) {
+  if (!mongoose.isValidObjectId(teacherId)) {
     return next(new ErrorResponse(`O'qituvchi ID-${teacherId} toplimadi`, 404));
   }
 
