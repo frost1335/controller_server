@@ -173,6 +173,7 @@ exports.getOne = async (req, res) => {
 exports.initOne = async (req, res) => {
   const { groupId } = req.params;
   const month = new Date().getMonth();
+  const year = new Date().getFullYear();
   const monthStr = monthList[month];
 
   try {
