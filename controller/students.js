@@ -3,6 +3,7 @@ const Student = require("../schemas/Student");
 const Teacher = require("../schemas/Teacher");
 const asyncHandler = require("../middleware/asyncHandler");
 const ErrorResponse = require("../utils/errorResponse");
+const Group = require("../schemas/Group");
 const ObjectId = mongoose.Types.ObjectId;
 
 exports.getAll = asyncHandler(async (req, res) => {
@@ -176,7 +177,7 @@ exports.getOne = asyncHandler(async (req, res, next) => {
 
   res.status(200).json({
     success: true,
-    data: { ...student[0] },
+    data: student[0],
   });
 });
 
@@ -202,8 +203,60 @@ exports.editOne = asyncHandler(async (req, res, next) => {
 exports.removeOne = asyncHandler(async (req, res, next) => {
   const { studentId } = req.params;
 
+  const student = await Student.aggregate([
+    {
+      $match: {
+        _id: studentId,
+      },
+    },
+    {
+      $lookup: {
+        from: "groups",
+        let: { student_id: "$_id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $in: ["$$student_id", "$students"],
+              },
+            },
+          },
+          {
+            $project: {
+              _id: 1,
+            },
+          },
+        ],
+        as: "group",
+      },
+    },
+    {
+      $project: {
+        group: { $arrayElemAt: ["$group._id", 0] },
+        _id: 0,
+      },
+    },
+  ]);
+
   if (!isValidObjectId(studentId)) {
     return next(new ErrorResponse(`O'quvchi ID-${studentId} toplimadi`, 404));
+  }
+
+  if (isValidObjectId(student[0]?.group)) {
+    await Group.updateOne(
+      { _id: student[0]?.group },
+      {
+        $pull: {
+          students: req.body.student,
+          "attendance.$[month].studentList": {
+            studentId: req.body.student,
+          },
+        },
+      },
+      {
+        arrayFilters: [{ "month.current": true }],
+      }
+    );
   }
 
   await Student.deleteOne({ _id: studentId });

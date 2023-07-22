@@ -1,81 +1,93 @@
-const { default: mongoose } = require("mongoose");
+const { default: mongoose, isValidObjectId } = require("mongoose");
 const Course = require("../schemas/Course");
+const asyncHandler = require("../middleware/asyncHandler");
+const ErrorResponse = require("../utils/errorResponse");
 const ObjectId = mongoose.Types.ObjectId;
 
-exports.getAll = async (req, res) => {
-  try {
-    const courses = await Course.find();
-    res.json(courses);
-  } catch (e) {
-    console.log(e.message);
-  }
-};
+exports.getAll = asyncHandler(async (req, res) => {
+  const courses = await Course.find();
 
-exports.createOne = async (req, res) => {
-  try {
-    const course = await Course.create({ ...req.body });
+  res.status(200).json({
+    success: true,
+    data: courses,
+  });
+});
 
-    res.json(course);
-  } catch (e) {
-    console.log(e.message);
-  }
-};
+exports.createOne = asyncHandler(async (req, res) => {
+  await Course.create({ ...req.body });
 
-exports.getOne = async (req, res) => {
+  res.status(201).json({
+    success: true,
+    message: "Kurs qo'shildi",
+  });
+});
+
+exports.getOne = asyncHandler(async (req, res, next) => {
   const { courseId } = req.params;
-  try {
-    const course = await Course.aggregate([
-      {
-        $match: {
-          _id: new ObjectId(courseId),
-        },
-      },
-      {
-        $lookup: {
-          from: "groups",
-          localField: "_id",
-          foreignField: "course",
-          as: "groups",
-          pipeline: [
-            {
-              $project: {
-                name: 1,
-              },
-            },
-          ],
-        },
-      },
-    ]);
 
-    res.json({ ...course[0] });
-  } catch (e) {
-    console.log(e.message);
+  if (!isValidObjectId(courseId)) {
+    return next(new ErrorResponse(`Kurs ID-${courseId} toplimadi`, 404));
   }
-};
 
-exports.editOne = async (req, res) => {
+  const course = await Course.aggregate([
+    {
+      $match: {
+        _id: new ObjectId(courseId),
+      },
+    },
+    {
+      $lookup: {
+        from: "groups",
+        localField: "_id",
+        foreignField: "course",
+        as: "groups",
+        pipeline: [
+          {
+            $project: {
+              name: 1,
+            },
+          },
+        ],
+      },
+    },
+  ]);
+
+  res.status(200).json({
+    success: true,
+    data: course,
+  });
+});
+
+exports.editOne = asyncHandler(async (req, res, next) => {
   const { courseId } = req.params;
   const course = req.body;
-  try {
-    const newCourse = await Course.findByIdAndUpdate(
-      courseId,
-      { ...course, _id: courseId },
-      { new: true }
-    );
 
-    res.json(newCourse);
-  } catch (e) {
-    console.log(e.message);
+  if (!isValidObjectId(courseId)) {
+    return next(new ErrorResponse(`Kurs ID-${courseId} toplimadi`, 404));
   }
-};
 
-exports.removeOne = async (req, res) => {
+  await Course.updateOne(
+    {
+      _id: courseId,
+    },
+    { ...course, _id: courseId },
+    { new: true }
+  );
+
+  res.json({
+    success: true,
+    message: "Kurs ma'lumotlari o'zgartirildi",
+  });
+});
+
+exports.removeOne = asyncHandler(async (req, res, next) => {
   const { courseId } = req.params;
-  try {
-    await Course.deleteOne({ _id: courseId });
 
-    res.json({ success: true, message: "Course is deleted" });
-  } catch (e) {
-    console.log(e.message);
+  if (!isValidObjectId(courseId)) {
+    return next(new ErrorResponse(`Kurs ID-${courseId} toplimadi`, 404));
   }
-};
+
+  await Course.deleteOne({ _id: courseId });
+
+  res.status(200).json({ success: true, message: "Kurs o'chirildi" });
+});
