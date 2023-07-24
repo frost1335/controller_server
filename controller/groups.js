@@ -297,6 +297,10 @@ exports.addStudents = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse(`Guruh ID-${groupId} toplimadi`, 404));
   }
 
+  if (!req.body.length) {
+    return next(new ErrorResponse(`O'quvchi topilmadi`, 400));
+  }
+
   const group = await Group.findOne(
     { _id: groupId },
     { attendance: 1, days: 1 }
