@@ -339,8 +339,6 @@ exports.searchStudents = asyncHandler(async (req, res, next) => {
     return next(new ErrorResponse("Qidiruv ma'lumoti bo'lishi shart"));
   }
 
-  console.log(search);
-
   const students = await Student.aggregate([
     {
       $search: {
