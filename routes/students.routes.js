@@ -8,6 +8,7 @@ const {
   makePayment,
   getSpecStudents,
   searchStudents,
+  getPaymentHistory,
 } = require("../controller/students");
 const router = Router();
 
@@ -20,5 +21,6 @@ router
   .get(getOne)
   .post(makePayment);
 router.route("/specs").get(getSpecStudents);
+router.route("/payment/history").get(getPaymentHistory);
 
 module.exports = router;

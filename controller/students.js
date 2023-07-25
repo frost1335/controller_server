@@ -406,3 +406,39 @@ exports.searchStudents = asyncHandler(async (req, res, next) => {
     },
   });
 });
+
+exports.getPaymentHistory = asyncHandler(async (req, res, next) => {
+  const data = await Student.aggregate([
+    {
+      $unwind: {
+        path: "$paymentHistory",
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        payment: "$paymentHistory",
+      },
+    },
+    {
+      $group: {
+        _id: "$payment.date",
+        payments: {
+          $push: {
+            name: "$name",
+            _id: "$_id",
+            quantity: "$payment.quantity",
+            method: "$payment.method",
+            info: "$payment.info",
+          },
+        },
+      },
+    },
+    { $sort: { _id: -1 } },
+  ])
+
+  res.status(200).json({
+    success: true,
+    data: data,
+  });
+});
