@@ -34,10 +34,10 @@ exports.authLogin = asyncHandler(async (req, res, next) => {
 
   if (await bcrypt.compare(password, user.password)) {
     const accessToken = generateAccessToken({
-      name: user.name,
-      phone: user.phone,
-      owner: user.owner,
-      _id: user._id,
+      name: user?.name,
+      phone: user?.phone,
+      owner: user?.owner,
+      _id: user?._id,
     });
 
     return res.status(200).json({
@@ -70,7 +70,7 @@ exports.getUsers = asyncHandler(async (req, res, next) => {
 });
 
 exports.createUser = asyncHandler(async (req, res, next) => {
-  if (!req.user.owner) {
+  if (!req?.user?.owner) {
     return next(new ErrorResponse("Foydalanuvchiga ruxsat berilmadi!"));
   }
 

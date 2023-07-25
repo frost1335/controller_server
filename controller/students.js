@@ -4,6 +4,7 @@ const Teacher = require("../schemas/Teacher");
 const asyncHandler = require("../middleware/asyncHandler");
 const ErrorResponse = require("../utils/errorResponse");
 const Group = require("../schemas/Group");
+const Customer = require("../schemas/Customer");
 const ObjectId = mongoose.Types.ObjectId;
 
 exports.getAll = asyncHandler(async (req, res) => {
@@ -377,8 +378,31 @@ exports.searchStudents = asyncHandler(async (req, res, next) => {
     },
   ]);
 
+  const customers = await Customer.aggregate([
+    {
+      $search: {
+        index: "customer_search",
+        text: {
+          query: search,
+          path: ["name.first", "name.last", "info", "phone"],
+        },
+      },
+    },
+    {
+      $project: {
+        name: 1,
+        phone: 1,
+        info: 1,
+      },
+    },
+  ]);
+
   res.status(200).json({
     success: true,
-    data: { students: [...students], teachers: [...teachers] },
+    data: {
+      students: [...students],
+      teachers: [...teachers],
+      customers: [...customers],
+    },
   });
 });

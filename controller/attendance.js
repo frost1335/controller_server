@@ -189,6 +189,15 @@ exports.initOne = asyncHandler(async (req, res, next) => {
     { students: 1, days: 1, attendance: 1, _id: 0 }
   );
 
+  if (!group.days || !group.students.length) {
+    return next(
+      new ErrorResponse(
+        `O'quvchilar va dars kunlari kiritilishi majburiy! `,
+        400
+      )
+    );
+  }
+
   const isAttendance = group?.attendance.find(
     (table) => table.monthIndex === month
   );
